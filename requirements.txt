@@ -2,3 +2,5 @@ Flask==1.1.2
 Flask-Sockets==0.2.1
 gunicorn==20.0.4
 redis==3.5.3
+websocket-client~=1.2.1
+gevent~=21.8.0

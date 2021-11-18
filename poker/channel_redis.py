@@ -7,6 +7,7 @@ import gevent
 from redis import exceptions, Redis
 
 from .channel import Channel, MessageFormatError, MessageTimeout, ChannelError
+from .utils import *
 
 
 class RedisListener:
@@ -75,6 +76,7 @@ class MessageQueue:
         return self._queue_name
 
     def push(self, message: Any):
+        info(f"[redis:push] {message}")
         msg_serialized = json.dumps(message)
         msg_encoded = msg_serialized.encode("utf-8")
         try:
@@ -90,10 +92,13 @@ class MessageQueue:
                 if response is not None:
                     try:
                         # Deserialize and return the message
-                        return json.loads(response)
+                        message = json.loads(response)
+                        info(f"[redis:pop] {message}")
+                        return message
                     except ValueError:
                         # Invalid json
-                        raise MessageFormatError(desc="Unable to decode the JSON message")
+                        raise MessageFormatError(
+                            desc="Unable to decode the JSON message")
                 else:
                     # Context switching
                     gevent.sleep(0.01)
@@ -104,11 +109,15 @@ class MessageQueue:
 
 class ChannelRedis(Channel):
     def __init__(self, redis: Redis, channel_in: str, channel_out: str):
+        info(f"[redis:init]")
         self._queue_in = MessageQueue(redis, channel_in)
         self._queue_out = MessageQueue(redis, channel_out)
 
     def send_message(self, message: Any):
+        info(f"[redis:send] {message}")
         self._queue_out.push(message)
 
     def recv_message(self, timeout_epoch: Optional[float] = None) -> Any:
-        return self._queue_in.pop(timeout_epoch)
+        message = self._queue_in.pop(timeout_epoch)
+        info(f"[redis:recv] {message}")
+        return message

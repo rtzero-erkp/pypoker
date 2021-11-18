@@ -6,6 +6,7 @@ from typing import Optional, Any
 from geventwebsocket.websocket import WebSocket
 
 from .channel import Channel, ChannelError, MessageFormatError, MessageTimeout
+from .utils import info
 
 
 class ChannelWebSocket(Channel):
@@ -16,6 +17,7 @@ class ChannelWebSocket(Channel):
         self._ws.close()
 
     def send_message(self, message: Any):
+        info(f"[ws:send] {message}")
         if self._ws.closed:
             raise ChannelError("Unable to send data to the remote host (not connected)")
 
@@ -45,7 +47,9 @@ class ChannelWebSocket(Channel):
             raise ChannelError("Unable to receive data from the remote host (message was empty)")
         try:
             # Deserialize and return the message
-            return json.loads(message)
+            message = json.loads(message)
+            info(f"[ws:recv] {message}")
+            return message
         except ValueError:
             # Invalid json
             raise MessageFormatError(desc="Unable to decode the JSON message")

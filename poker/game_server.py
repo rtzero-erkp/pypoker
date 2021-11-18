@@ -7,6 +7,7 @@ import gevent
 
 from .player_server import PlayerServer
 from .game_room import FullGameRoomException, GameRoom, GameRoomFactory
+from .utils import *
 
 
 class ConnectedPlayer:
@@ -24,21 +25,31 @@ class GameServer:
         self._room_factory: GameRoomFactory = room_factory
         self._logger = logger if logger else logging
 
+    def show(self):
+        info(f"[gs] id:{self._id}")
+        info(f"[gs] players:{self._players}")
+        info(f"[gs] rooms:{self._rooms}")
+
     def __str__(self):
+        mark()
         return "server {}".format(self._id)
 
     def new_players(self) -> Generator[ConnectedPlayer, None, None]:
+        mark()
         raise NotImplementedError
 
     def __get_room(self, room_id: str) -> GameRoom:
+        mark()
         try:
             return next(room for room in self._rooms if room.id == room_id)
         except StopIteration:
-            room = self._room_factory.create_room(id=room_id, private=True, logger=self._logger)
+            room = self._room_factory.create_room(
+                id=room_id, private=True, logger=self._logger)
             self._rooms.append(room)
             return room
 
     def _join_private_room(self, player: PlayerServer, room_id: str) -> GameRoom:
+        mark()
         self._lobby_lock.acquire()
         try:
             room = self.__get_room(room_id)
@@ -48,6 +59,7 @@ class GameServer:
             self._lobby_lock.release()
 
     def _join_any_public_room(self, player: PlayerServer) -> GameRoom:
+        mark()
         self._lobby_lock.acquire()
         try:
             # Adding player to the first non-full public room
@@ -60,7 +72,8 @@ class GameServer:
                         pass
 
             # All rooms are full: creating new room
-            room = self._room_factory.create_room(id=str(uuid4()), private=False, logger=self._logger)
+            room = self._room_factory.create_room(
+                id=str(uuid4()), private=False, logger=self._logger)
             room.join(player)
             self._rooms.append(room)
             return room
@@ -68,20 +81,25 @@ class GameServer:
             self._lobby_lock.release()
 
     def _join_room(self, player: ConnectedPlayer) -> GameRoom:
+        mark()
         if player.room_id is None:
-            self._logger.info("Player {}: joining public room".format(player.player))
+            self._logger.info(
+                "Player {}: joining public room".format(player.player))
             return self._join_any_public_room(player.player)
         else:
-            self._logger.info("Player {}: joining private room {}".format(player.player, player.room_id))
+            self._logger.info("Player {}: joining private room {}".format(
+                player.player, player.room_id))
             return self._join_private_room(player.player, player.room_id)
 
     def start(self):
+        mark()
         self._logger.info("{}: running".format(self))
         self.on_start()
         try:
             for player in self.new_players():
                 # Player successfully connected: joining the lobby
-                self._logger.info("{}: {} connected".format(self, player.player))
+                self._logger.info(
+                    "{}: {} connected".format(self, player.player))
                 try:
                     room = self._join_room(player)
                     self._logger.info("Room: {}".format(room.id))

@@ -1,4 +1,4 @@
-import os
+import json
 import uuid
 
 import gevent
@@ -11,6 +11,7 @@ from poker.channel import ChannelError, MessageFormatError, MessageTimeout
 from poker.channel_websocket import ChannelWebSocket
 from poker.player import Player
 from poker.player_client import PlayerClientConnector
+from poker.utils import *
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "!!_-pyp0k3r-_!!"
@@ -18,12 +19,14 @@ app.debug = True
 
 sockets = Sockets(app)
 
-redis_url = os.environ["REDIS_URL"]
+# redis_url = os.environ["REDIS_URL"]
+redis_url = "redis://192.168.199.220:6379"
 redis = redis.from_url(redis_url)
 
 
 @app.route("/")
 def index():
+    info("index")
     if "player-id" not in session:
         return render_template("index.html", template="login.html")
 
@@ -36,43 +39,84 @@ def index():
 
 @app.route("/join", methods=["POST"])
 def join():
+    info("join")
+    info(f"request:{request.form}")
     name = request.form["name"]
     room_id = request.form["room-id"]
     session["player-id"] = str(uuid.uuid4())
     session["player-name"] = name
     session["player-money"] = 1000
     session["room-id"] = room_id if room_id else None
+    info(f"session:{session}")
     return redirect(url_for("index"))
 
 
 @sockets.route("/poker/texas-holdem")
 def texasholdem_poker_game(ws: WebSocket):
+    info("texasholdem_poker_game")
     return poker_game(ws, "texas-holdem-poker:lobby")
 
 
 @sockets.route("/poker/traditional")
 def traditional_poker_game(ws: WebSocket):
+    info("traditional_poker_game")
     return poker_game(ws, "traditional-poker:lobby")
 
 
 def poker_game(ws: WebSocket, connection_channel: str):
+    info("poker_game")
     client_channel = ChannelWebSocket(ws)
+    info(f"session:{session}")
 
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     if "player-id" not in session:
-        client_channel.send_message({"message_type": "error", "error": "Unrecognized user"})
-        client_channel.close()
-        return
+        first = ws.receive()
+        first = json.loads(first)
+        info(f"first:{first}")
+        session_id = str(uuid.uuid4())
+        player_id = first["player-id"]
+        player_name = first["player-name"]
+        player_money = first["player-money"]
+        room_id = first["room-id"]
+        session["player-id"] = player_id
+        session["player-name"] = player_name
+        session["player-money"] = player_money
+        session["room-id"] = room_id
+    else:
+        session_id = str(uuid.uuid4())
+        player_id = session["player-id"]
+        player_name = session["player-name"]
+        player_money = session["player-money"]
+        room_id = session["room-id"]
+    # ===================================
+    # if "player-id" not in session:
+    #     mark()
+    #     client_channel.send_message(
+    #         {
+    #             "message_type": "error",
+    #             "error": "Unrecognized user",
+    #         })
+    #     client_channel.close()
+    #     error("no session close")
+    #     return
+    #
+    # mark()
+    # session_id = str(uuid.uuid4())
+    #
+    # mark()
+    # player_id = session["player-id"]
+    # player_name = session["player-name"]
+    # player_money = session["player-money"]
+    # room_id = session["room-id"]
+    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-    session_id = str(uuid.uuid4())
+    mark()
+    player_connector = PlayerClientConnector(
+        redis, connection_channel, app.logger)
 
-    player_id = session["player-id"]
-    player_name = session["player-name"]
-    player_money = session["player-money"]
-    room_id = session["room-id"]
-
-    player_connector = PlayerClientConnector(redis, connection_channel, app.logger)
-
+    mark()
     try:
+        mark()
         server_channel = player_connector.connect(
             player=Player(
                 id=player_id,
@@ -82,11 +126,15 @@ def poker_game(ws: WebSocket, connection_channel: str):
             session_id=session_id,
             room_id=room_id
         )
+        mark()
 
     except (ChannelError, MessageFormatError, MessageTimeout) as e:
-        app.logger.error("Unable to connect player {} to a poker5 server: {}".format(player_id, e.args[0]))
+        mark()
+        app.logger.error("Unable to connect player {} to a poker5 server: {}".format(
+            player_id, e.args[0]))
 
     else:
+        mark()
         # Forwarding connection to the client
         client_channel.send_message(server_channel.connection_message)
 
@@ -136,3 +184,14 @@ def poker_game(ws: WebSocket, connection_channel: str):
             server_channel.close()
 
         app.logger.info("player {} connection closed".format(player_id))
+    mark()
+
+
+if __name__ == "__main__":
+    from gevent import pywsgi
+    from geventwebsocket.handler import WebSocketHandler
+
+    server = pywsgi.WSGIServer(
+        ('0.0.0.0', 5000), application=app, handler_class=WebSocketHandler)
+    info('server started')
+    server.serve_forever()

@@ -11,7 +11,8 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
     logger = logging.getLogger()
 
-    redis_url = os.environ["REDIS_URL"]
+    # redis_url = os.environ["REDIS_URL"]
+    redis_url = "redis://192.168.199.220:6379"
     redis = redis.from_url(redis_url)
 
     server = GameServerRedis(

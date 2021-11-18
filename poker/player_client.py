@@ -3,9 +3,10 @@ from typing import Any, Optional
 
 from redis import Redis
 
-from .player import Player
-from .channel import MessageFormatError, Channel
+from .channel import Channel, MessageFormatError
 from .channel_redis import ChannelRedis, MessageQueue
+from .player import Player
+from .utils import *
 
 
 class PlayerClient:
@@ -41,6 +42,7 @@ class PlayerClientConnector:
         self._logger = logger
 
     def connect(self, player: Player, session_id: str, room_id: str) -> PlayerClient:
+        mark()
         # Requesting new connection
         self._connection_queue.push(
             {
@@ -56,6 +58,7 @@ class PlayerClientConnector:
             }
         )
 
+        mark()
         server_channel = ChannelRedis(
             self._redis,
             "poker5:player-{}:session-{}:O".format(player.id, session_id),
@@ -63,7 +66,11 @@ class PlayerClientConnector:
         )
 
         # Reading connection response
+        mark()
         connection_message = server_channel.recv_message(time.time() + PlayerClientConnector.CONNECTION_TIMEOUT)
+        mark()
         MessageFormatError.validate_message_type(connection_message, "connect")
+        mark()
         self._logger.info("{}: connected to server {}".format(player, connection_message["server_id"]))
+        mark()
         return PlayerClient(player, connection_message, server_channel)
