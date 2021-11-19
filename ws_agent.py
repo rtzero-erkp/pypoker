@@ -17,7 +17,7 @@ join_url = "http://192.168.199.220:5000/join"
 
 def card2str(card_idx, color_idx):
     cards = "__23456789TJQKA"
-    colors = ["red", "blue", "yellow", "purple"]
+    colors = ["红色", "蓝色", "黄色", "绿色"]
     card = use_style(cards[card_idx], fore=colors[color_idx])
     return card
 
