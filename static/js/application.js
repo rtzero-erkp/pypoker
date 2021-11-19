@@ -324,16 +324,84 @@ PyPoker = {
         },
 
         sliderHandler: function (value) {
-            if (value == 0) {
+            if (value === 0) {
                 $('#bet-cmd').attr("value", "Check");
             } else {
                 $('#bet-cmd').attr("value", "$" + parseInt(value));
             }
             $('#bet-input').val(value);
+            console.log("[bet] type:" + $('#bet-cmd').val() + ", val:" + $('#bet-input').val())
+        },
+
+        opts_btn: [],
+
+        addButtons: function (acts) {
+            for (let idx in acts) { // 添加自定义按钮
+                let act = acts[idx].act // 添加自定义按钮
+                let val = acts[idx].val // 添加自定义按钮
+
+                let name = act
+                let attr_class
+                if (act === "fold") {
+                    attr_class = "btn btn-danger"
+                } else if (act === "check") {
+                    attr_class = "btn btn-primary"
+                } else if (act === "call") {
+                    attr_class = "btn btn-primary"
+                } else {
+                    attr_class = "btn btn-warning"
+                    name = name + ", $" + val;
+                }
+
+                let parent = document.getElementById("bet-controls");
+                let div_obj = document.createElement("div");
+                div_obj.id = "div " + name;
+                div_obj.type = "div";
+                div_obj.class = "btn btn-primary";
+                let input_obj = document.createElement("input");
+                input_obj.id = "input " + name;
+                input_obj.type = "button";
+                input_obj.value = name;
+                input_obj.setAttribute("class", attr_class);
+                input_obj.addEventListener("click", function () {
+                    PyPoker.Player.sendAct(act, val)
+                });
+                div_obj.appendChild(input_obj)
+                parent.appendChild(div_obj);
+
+                PyPoker.Player.opts_btn.push(name)
+                console.log("[addButton] act:" + act + ", val:" + val)
+            }
+        },
+
+        sendAct: function (act, val) {
+            console.log("[click] act:" + act + ", val:" + val)
+            PyPoker.socket.send(JSON.stringify({
+                'message_type': 'bet',
+                'act': act,
+                'bet': val,
+            }));
+            PyPoker.Player.disableBetMode();
+        },
+
+        subButtons: function () {
+            let parent = document.getElementById("bet-controls");
+            while (PyPoker.Player.opts_btn.length > 0) {
+                let name = PyPoker.Player.opts_btn.pop()
+                let node = document.getElementById("div " + name);
+                parent.removeChild(node);
+                console.log("[subButton] name:" + name)
+            }
         },
 
         enableBetMode: function (message) {
             PyPoker.Player.betMode = true;
+            console.log("[message] min_bet:" + message.min_bet)
+            console.log("[message] max_bet:" + message.max_bet)
+            // ==================================
+            PyPoker.Player.subButtons() // 添加自定义按钮
+            PyPoker.Player.addButtons(message.acts) // 添加自定义按钮
+            // ==================================
 
             if (!message.min_score || $('#current-player').data('allowed-to-bet')) {
                 // Set-up slider
@@ -354,17 +422,23 @@ PyPoker = {
                         .addClass('btn-danger')
                         .removeClass('btn-warning');
                 }
-
+                // 自己行动
                 $('#fold-cmd-wrapper').show();
                 $('#bet-input-wrapper').show();
                 $('#bet-cmd-wrapper').show();
                 $('#no-bet-cmd-wrapper').hide();
-            } else {
+            } else { // 他人行动
                 $('#fold-cmd-wrapper').hide();
                 $('#bet-input-wrapper').hide();
                 $('#bet-cmd-wrapper').hide();
                 $('#no-bet-cmd-wrapper').show();
             }
+            // ==================================
+            $('#fold-cmd-wrapper').hide(); // 隐藏默认的按键方式
+            $('#bet-input-wrapper').hide(); // 隐藏默认的按键方式
+            $('#bet-cmd-wrapper').hide(); // 隐藏默认的按键方式
+            $('#no-bet-cmd-wrapper').hide(); // 隐藏默认的按键方式
+            // ==================================
 
             $('#bet-controls').show();
         },
@@ -590,6 +664,7 @@ PyPoker = {
                 'message_type': 'bet',
                 'bet': -1
             }));
+            console.log("[click] fold, -1")
             PyPoker.Player.disableBetMode();
         });
 
@@ -598,6 +673,7 @@ PyPoker = {
                 'message_type': 'bet',
                 'bet': 0
             }));
+            console.log("[click] no bet, 0")
             PyPoker.Player.disableBetMode();
         });
 
@@ -606,6 +682,7 @@ PyPoker = {
                 'message_type': 'bet',
                 'bet': $('#bet-input').val()
             }));
+            console.log("[click] bet, " + $('#bet-input').val())
             PyPoker.Player.disableBetMode();
         });
 

@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import gevent
 
+from . import define
 from .player_server import PlayerServer
 from .game_room import FullGameRoomException, GameRoom, GameRoomFactory
 from .utils import *
@@ -26,20 +27,21 @@ class GameServer:
         self._logger = logger if logger else logging
 
     def show(self):
-        info(f"[gs] id:{self._id}")
-        info(f"[gs] players:{self._players}")
-        info(f"[gs] rooms:{self._rooms}")
+        if define.SHOW_LOG:
+            info(f"[gs] id:{self._id}")
+            info(f"[gs] players:{self._players}")
+            info(f"[gs] rooms:{self._rooms}")
 
     def __str__(self):
-        mark()
+
         return "server {}".format(self._id)
 
     def new_players(self) -> Generator[ConnectedPlayer, None, None]:
-        mark()
+
         raise NotImplementedError
 
     def __get_room(self, room_id: str) -> GameRoom:
-        mark()
+
         try:
             return next(room for room in self._rooms if room.id == room_id)
         except StopIteration:
@@ -49,7 +51,7 @@ class GameServer:
             return room
 
     def _join_private_room(self, player: PlayerServer, room_id: str) -> GameRoom:
-        mark()
+
         self._lobby_lock.acquire()
         try:
             room = self.__get_room(room_id)
@@ -59,7 +61,7 @@ class GameServer:
             self._lobby_lock.release()
 
     def _join_any_public_room(self, player: PlayerServer) -> GameRoom:
-        mark()
+
         self._lobby_lock.acquire()
         try:
             # Adding player to the first non-full public room
@@ -81,7 +83,7 @@ class GameServer:
             self._lobby_lock.release()
 
     def _join_room(self, player: ConnectedPlayer) -> GameRoom:
-        mark()
+
         if player.room_id is None:
             self._logger.info(
                 "Player {}: joining public room".format(player.player))
@@ -92,7 +94,7 @@ class GameServer:
             return self._join_private_room(player.player, player.room_id)
 
     def start(self):
-        mark()
+
         self._logger.info("{}: running".format(self))
         self.on_start()
         try:

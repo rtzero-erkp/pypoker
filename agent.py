@@ -1,7 +1,11 @@
 import json
+import random
 import uuid
 from typing import List
+
 from websocket import create_connection
+
+from poker import define
 from poker.utils import *
 
 ws_url = "ws://192.168.199.220:5000/poker/lobby"
@@ -57,7 +61,7 @@ class Agent:
     def __init__(self):
         self.pid = str(uuid.uuid4())
         self.name = f"ws_agent"
-        self.money = 1000
+        self.money = define.STACK_INIT
         self.room_id = 1
 
     @head_tail
@@ -139,12 +143,15 @@ class Agent:
             pid = msg["player_id"]
             # is_self = pid == self.pid
             debug(f"[leave] pid:{pid}")
+        elif event == "player-rejoined":
+            pid = msg["player_id"]
+            debug(f"[rejoined] pid:{pid}")
         else:
             debug(f"unknown event.type:{event}")
+            debug(f"msg:{msg}")
 
     def dealt_game_update(self, msg: json):
         event = msg["event"]
-        # game_type = msg["game_type"]
         if event == "new-game":
             _ = {"message_type": "game-update",
                  "game_id": "35fc022f-468c-4e93-a069-a9da0e52526f",  # 游戏编号
@@ -189,19 +196,60 @@ class Agent:
                  'player': {'id': '7d4c45ef-b059-4b58-9459-bd44efbf142a', 'name': 'ws_agent', 'money': 990.0},
                  'timeout': 30, 'timeout_date': '2021-11-19 03:04:18+0000',
                  'event': 'player-action', 'game_id': 'db804b66-8ffb-4eaf-a7ca-049d2bef4036'}
+            _ = {'message_type': 'game-update',
+                 'action': 'bet',
+                 'player': {'id': '46efdfdd-3a23-4672-b2ff-fdc78e1bfc70', 'name': 'ws_agent', 'money': 198000.0},
+                 'min_bet': 0.0,
+                 'max_bet': 198000.0,
+                 'acts': [
+                     {'act': 'fold', 'val': -1},
+                     {'act': 'check', 'val': 0},
+                     {'act': '1/3 pot', 'val': 1333},
+                     {'act': '1/2 pot', 'val': 2000},
+                     {'act': '2/3 pot', 'val': 2666},
+                     {'act': '1 pot', 'val': 4000},
+                     {'act': 'allIn', 'val': 198000.0}],
+                 'bets': {
+                     '714f1ad1-9726-4bb0-b2cd-8ecc1c53bb47': 2000.0,
+                     '46efdfdd-3a23-4672-b2ff-fdc78e1bfc70': 2000.0},
+                 'timeout': 31536000, 'timeout_date': '2022-11-19 08:36:18+0000',
+                 'event': 'player-action',
+                 'game_id': '67d6993e-6763-4851-99a9-ca01b9696b01'}
+            _ = {'message_type': 'game-update',
+                 'action': 'bet',
+                 'player': {'id': 'f2aa3aea-5e3e-40b6-983b-ff88d7bc5c58', 'name': 'ws_agent', 'money': 197000.0},
+                 'min_bet': 1000.0, 'max_bet': 197000.0,
+                 'acts': [{'act': 'fold', 'val': -1},
+                          {'act': 'call', 'val': 1000.0},
+                          {'act': '1/3 pot', 'val': 2333},
+                          {'act': '1/2 pot', 'val': 3000},
+                          {'act': '2/3 pot', 'val': 3666},
+                          {'act': '1 pot', 'val': 5000},
+                          {'act': 'allIn', 'val': 197000.0}],
+                 'bets': {'f2aa3aea-5e3e-40b6-983b-ff88d7bc5c58': 1000.0,
+                          '714f1ad1-9726-4bb0-b2cd-8ecc1c53bb47': 2000.0},
+                 'timeout': 31536000, 'timeout_date': '2022-11-19 08:43:19+0000',
+                 'event': 'player-action',
+                 'game_id': '8a9b3de9-c03b-4faf-a881-1643a6bf720a'}
+
             pid = msg["player"]["id"]
-            name = msg["player"]["name"]
+            # name = msg["player"]["name"]
             money = msg["player"]["money"]
-            timeout = msg["timeout"]
+            # timeout = msg["timeout"]
             is_self = pid == self.pid
-            debug(f"[crt] name:{name}, money:{money}, timeout:{timeout}, self:{is_self}")
+            # info(f"msg:{msg}")
+            # debug(f"[crt] name:{name}, money:{money}, timeout:{timeout}, self:{is_self}")
             if is_self:
-                act = {
+                acts = msg["acts"]
+                act_i = random.randrange(len(acts))
+                act = acts[act_i]
+                send = {
                     "message_type": "bet",
-                    "bet": msg["min_bet"]
+                    "bet": act['val'],
                 }
-                self.ws.send(act)
-                debug(f"[self] bet:{act['bet']}")
+                # time.sleep(10)  # agent 行动等待时间
+                self.ws.send(send)
+                debug(f"[select] money:{money}, act:{act['act']}, val:{act['val']}")
                 # 自己行动反馈
                 _ = {'message_type': 'game-update',
                      'player': {'id': '7101d05e-e862-45aa-a888-4603f6717005', 'name': 'ws_agent', 'money': 960.0},
@@ -226,6 +274,7 @@ class Agent:
                      'event': 'bet', 'game_id': 'bbde7dea-74b2-4c71-a80a-6c4994a32eba'}
         elif event == "cards-change":
             debug(f"msg:{msg}")
+            pass
         elif event == "bet":
             _ = {"message_type": "game-update",
                  "player": {"id": "ba05d6ac-e42b-4105-b3d5-4e26371dd078", "name": "ws_agent", "money": 980.0},  # 玩家账户变化
@@ -246,7 +295,7 @@ class Agent:
             money = msg["player"]["money"]
             act = msg["bet_type"]
             bet = msg["bet"]
-            debug(f"[act] name:{name}, money:{money}, act:{act}, bet:{bet}, self:{pid == self.pid}")
+            debug(f"[step] name:{name}, money:{money}, act:{act}, bet:{bet}, self:{pid == self.pid}")
         elif event == "fold":
             _ = {'message_type': 'game-update',
                  'player': {'id': '714f1ad1-9726-4bb0-b2cd-8ecc1c53bb47', 'name': '1', 'money': 960.0},
@@ -354,8 +403,10 @@ class Agent:
             debug(f"[board] hand:{cards2str(self.hand)}, board:{cards2str(self.board)}")
         else:
             debug(f"unknown event.type:{event}")
+            debug(f"msg:{msg}")
 
 
 if __name__ == "__main__":
     agent = Agent()
-    agent.connect(ws_url)
+    while True:
+        agent.connect(ws_url)

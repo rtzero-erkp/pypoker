@@ -18,8 +18,7 @@ def my_format(level, line, deep):
         fore = ""
     else:
         fore = ""
-    line = use_style(
-        f"{level} {time.time()} {filename} {co_name}:{f_lineno} - {line}", fore=fore)
+    line = use_style(f"{level} {filename} {co_name}:{f_lineno} - {line}", fore=fore)
     return line
 
 

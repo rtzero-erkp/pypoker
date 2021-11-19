@@ -280,6 +280,24 @@ class GameEventDispatcher:
         )
 
     def bet_action_event(self, player: Player, min_bet: float, max_bet: float, bets: Dict[str, float], timeout: int, timeout_epoch: float):
+        # 添加了若干可选按钮
+        acts = [{"act": "fold", "val": -1}]
+        if min_bet == 0:
+            acts.append({"act": "check", "val": 0})
+        else:
+            acts.append({"act": "call", "val": min_bet})
+
+        one_pot = min_bet
+        for pid in bets:
+            one_pot += bets[pid]
+        for pot_name in define.POTS:
+            rate = define.POTS[pot_name]
+            val = int(rate * one_pot + min_bet)
+            if val <= max_bet:
+                acts.append({"act": pot_name, "val": val})
+
+        acts.append({"act": "allIn", "val": max_bet})
+
         self.raise_event(
             "player-action",
             {
@@ -287,6 +305,7 @@ class GameEventDispatcher:
                 "player": player.dto(),
                 "min_bet": min_bet,
                 "max_bet": max_bet,
+                "acts": acts,
                 "bets": bets,
                 "timeout": timeout,
                 "timeout_date": time.strftime("%Y-%m-%d %H:%M:%S+0000", time.gmtime(timeout_epoch))

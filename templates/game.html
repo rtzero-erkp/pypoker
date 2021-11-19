@@ -1,3 +1,4 @@
+C
 <div class="container" id="game-wrapper">
     <div class="row">
         <div id="table-wrapper" class="col-sm-8">
@@ -12,7 +13,7 @@
         </div>
 
         <div id="current-player-wrapper" class="col-sm-4">
-            <h4>Hi {{player_name}}!</h4>
+            <h4>Hi {{ player_name }}!</h4>
 
             <div id="game-status" class="hidden">
                 <p data-key="4"></p>
@@ -30,7 +31,7 @@
                 <div id="player-controls">
                     <div id="bet-controls" class="controls">
                         <div id="fold-cmd-wrapper">
-                            <input type="button" id="fold-cmd" class="btn btn-danger" value="Fold" />
+                            <input type="button" id="fold-cmd" class="btn btn-danger" value="Fold"/>
                         </div>
                         <div id="bet-input-wrapper">
                             <input id="bet-input" type="hidden" class="slider"
@@ -38,10 +39,10 @@
                                    data-slider-step="1"/>
                         </div>
                         <div id="bet-cmd-wrapper">
-                            <input type="button" id="bet-cmd" class="btn btn-primary" value="Check" />
+                            <input type="button" id="bet-cmd" class="btn btn-primary" value="Check"/>
                         </div>
                         <div id="no-bet-cmd-wrapper">
-                            <input type="button" id="no-bet-cmd" class="btn btn-warning" value="Unable to open" />
+                            <input type="button" id="no-bet-cmd" class="btn btn-warning" value="Unable to open"/>
                         </div>
                     </div>
 

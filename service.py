@@ -17,11 +17,11 @@ if __name__ == '__main__':
     redis_url = "redis://192.168.199.220:6379"
     game_factory = None
     if define.MODE == define.MODE_CUSTOM:
-        game_factory = CustomPokerGameFactory(40.0, 20.0, logger, [])
+        game_factory = CustomPokerGameFactory(2 * define.STACK_MULTI, 1 * define.STACK_MULTI, logger, [])
     elif define.MODE == define.MODE_SHORT:
-        game_factory = ShortPokerGameFactory(10.0, logger)
+        game_factory = ShortPokerGameFactory(1 * define.STACK_MULTI, logger)
     elif define.MODE == define.MODE_LONG:
-        game_factory = LongPokerGameFactory(40.0, 20.0, logger, [])
+        game_factory = LongPokerGameFactory(2 * define.STACK_MULTI, 1 * define.STACK_MULTI, logger, [])
     else:
         error(f"unknown mode:{define.MODE}")
         exit(-1)

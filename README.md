@@ -8,7 +8,7 @@
 
 ### config
 
-> poker/define.py
+> define.py
 
 ### msg process
 
@@ -25,3 +25,5 @@
 ### agent
 
 > agent.py
+>
+> 因为是做AI的, 把bet尺度离散化为有限个bet值, 参见 define.py
