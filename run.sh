@@ -10,19 +10,13 @@ pip install Werkzeug==1.0.1
 # pip install Werkzeug==1.0.2
 
 # client
-export FLASK_APP=client_web.py
-flask run --host=0.0.0.0 --port=5000
 python client_web.py
 
 # server
-python texasholdem_poker_service.py
+python service_poker_custom.py
+#python service_poker_long.py
+#python service_poker_short.py
 
-# test
-export FLASK_APP=test/test_ws_server.py
-export FLASK_APP=test/test_ws_server2.py
-flask run --host=0.0.0.0 --port=5000
-python test/test_ws_server.py
-python test/test_ws_server2.py
-
+# agent
 pip install websocket-client
-python test/test_ws_client.py
+python ws_agent.py

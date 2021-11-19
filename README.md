@@ -15,8 +15,11 @@
 >> "short-poker:lobby" : 短牌
 >>
 >> "custom-poker:lobby" : 自定义短牌, 正常短牌
->
 
 ### agent
 
 > refrence : ws_agent.py
+
+### boost
+
+> refrence : run.sh
