@@ -7,6 +7,7 @@ from flask import Flask, render_template, redirect, session, url_for, request
 from flask_sockets import Sockets
 from geventwebsocket.websocket import WebSocket
 
+from poker import define
 from poker.channel import ChannelError, MessageFormatError, MessageTimeout
 from poker.channel_websocket import ChannelWebSocket
 from poker.player import Player
@@ -22,7 +23,6 @@ sockets = Sockets(app)
 # redis_url = os.environ["REDIS_URL"]
 redis_url = "redis://192.168.199.220:6379"
 redis = redis.from_url(redis_url)
-mode = "custom-poker:lobby"
 
 
 @app.route("/")
@@ -55,7 +55,7 @@ def join():
 @sockets.route("/poker/lobby")
 def lobby_game(ws: WebSocket):
     info("lobby")
-    return poker_game(ws, mode)
+    return poker_game(ws, define.MODE)
 
 
 def poker_game(ws: WebSocket, connection_channel: str):

@@ -4,6 +4,7 @@ from typing import List
 
 import gevent
 
+from . import define
 from .channel import ChannelError, MessageFormatError, MessageTimeout
 from .deck import DeckFactory
 from .player import Player
@@ -65,7 +66,7 @@ class ShortPokerGameEventDispatcher(GameEventDispatcher):
                 "timeout_date": time.strftime("%Y-%m-%d %H:%M:%S+0000", time.gmtime(timeout_epoch))
             }
         )
-    
+
     def change_cards_event(self, player, num_cards):
         self.raise_event(
             "cards-change",
@@ -77,16 +78,10 @@ class ShortPokerGameEventDispatcher(GameEventDispatcher):
 
 
 class ShortPokerGame(PokerGame):
-    TIMEOUT_TOLERANCE = 2
-    BET_TIMEOUT = 30
-    CHANGE_CARDS_TIMEOUT = 30
-
-    # WAIT_AFTER_CARDS_ASSIGNMENT = 1
-    # WAIT_AFTER_BET_ROUND = 1
-    # WAIT_AFTER_SHOWDOWN = 2
-    # WAIT_AFTER_WINNER_DESIGNATION = 5
-
-    WAIT_AFTER_CARDS_CHANGE = 1
+    TIMEOUT_TOLERANCE = define.TIMEOUT_TOLERANCE
+    BET_TIMEOUT = define.BET_TIMEOUT
+    CHANGE_CARDS_TIMEOUT = define.CHANGE_CARDS_TIMEOUT
+    WAIT_AFTER_CARDS_CHANGE = define.WAIT_AFTER_CARDS_CHANGE
 
     def __init__(self, blind, *args, **kwargs):
         PokerGame.__init__(self, *args, **kwargs)

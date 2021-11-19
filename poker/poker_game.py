@@ -3,6 +3,7 @@ from typing import List, Dict, Set, Generator, Optional
 
 import gevent
 
+from . import define
 from .card import Card
 from .channel import ChannelError, MessageTimeout, MessageFormatError
 from .deck import DeckFactory, Deck
@@ -515,13 +516,12 @@ class GameBetHandler:
 
 
 class PokerGame:
-    TIMEOUT_TOLERANCE = 2
-    BET_TIMEOUT = 30
-
-    WAIT_AFTER_CARDS_ASSIGNMENT = 1
-    WAIT_AFTER_BET_ROUND = 1
-    WAIT_AFTER_SHOWDOWN = 2
-    WAIT_AFTER_WINNER_DESIGNATION = 5
+    TIMEOUT_TOLERANCE = define.TIMEOUT_TOLERANCE
+    BET_TIMEOUT = define.BET_TIMEOUT
+    WAIT_AFTER_CARDS_ASSIGNMENT = define.WAIT_AFTER_CARDS_ASSIGNMENT
+    WAIT_AFTER_BET_ROUND = define.WAIT_AFTER_BET_ROUND
+    WAIT_AFTER_SHOWDOWN = define.WAIT_AFTER_SHOWDOWN
+    WAIT_AFTER_WINNER_DESIGNATION = define.WAIT_AFTER_WINNER_DESIGNATION
 
     def __init__(self, id: str, game_players: GamePlayers, event_dispatcher: GameEventDispatcher, deck_factory: DeckFactory, score_detector: ScoreDetector):
         self._id: str = id

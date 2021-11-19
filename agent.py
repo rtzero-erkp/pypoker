@@ -192,8 +192,9 @@ class Agent:
             pid = msg["player"]["id"]
             name = msg["player"]["name"]
             money = msg["player"]["money"]
+            timeout = msg["timeout"]
             is_self = pid == self.pid
-            debug(f"[crt] name:{name}, money:{money}, self:{is_self}")
+            debug(f"[crt] name:{name}, money:{money}, timeout:{timeout}, self:{is_self}")
             if is_self:
                 act = {
                     "message_type": "bet",

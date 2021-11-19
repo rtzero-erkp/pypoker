@@ -3,6 +3,7 @@ from typing import Optional, List
 
 import gevent
 
+from . import define
 from .deck import DeckFactory
 from .player import Player
 from .poker_game import PokerGame, GameFactory, GameError, EndGameException, GamePlayers, GameEventDispatcher, GameSubscriber
@@ -64,15 +65,9 @@ class LongPokerGameEventDispatcher(GameEventDispatcher):
 
 
 class LongPokerGame(PokerGame):
-    TIMEOUT_TOLERANCE = 2
-    BET_TIMEOUT = 30
-
-    # WAIT_AFTER_CARDS_ASSIGNMENT = 1
-    # WAIT_AFTER_BET_ROUND = 1
-    # WAIT_AFTER_SHOWDOWN = 2
-    # WAIT_AFTER_WINNER_DESIGNATION = 5
-
-    WAIT_AFTER_FLOP_TURN_RIVER = 1
+    TIMEOUT_TOLERANCE = define.TIMEOUT_TOLERANCE
+    BET_TIMEOUT = define.BET_TIMEOUT
+    WAIT_AFTER_FLOP_TURN_RIVER = define.WAIT_AFTER_FLOP_TURN_RIVER
 
     def __init__(self, big_blind, small_blind, *args, **kwargs):
         PokerGame.__init__(self, *args, **kwargs)
