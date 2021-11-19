@@ -22,6 +22,7 @@ sockets = Sockets(app)
 # redis_url = os.environ["REDIS_URL"]
 redis_url = "redis://192.168.199.220:6379"
 redis = redis.from_url(redis_url)
+mode = "custom-poker:lobby"
 
 
 @app.route("/")
@@ -54,7 +55,7 @@ def join():
 @sockets.route("/poker/lobby")
 def lobby_game(ws: WebSocket):
     info("lobby")
-    return poker_game(ws, "custom-poker:lobby")
+    return poker_game(ws, mode)
 
 
 def poker_game(ws: WebSocket, connection_channel: str):

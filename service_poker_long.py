@@ -4,7 +4,7 @@ import os
 
 from poker.game_server_redis import GameServerRedis
 from poker.game_room import GameRoomFactory
-from poker.poker_game_holdem import HoldemPokerGameFactory
+from poker.poker_game_long import LongPokerGameFactory
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
@@ -18,7 +18,7 @@ if __name__ == '__main__':
         connection_channel="long-poker:lobby",
         room_factory=GameRoomFactory(
             room_size=10,
-            game_factory=HoldemPokerGameFactory(
+            game_factory=LongPokerGameFactory(
                 big_blind=40.0,
                 small_blind=20.0,
                 logger=logger,

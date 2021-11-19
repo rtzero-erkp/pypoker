@@ -150,7 +150,7 @@ class Score:
         }
 
 
-class TraditionalPokerScore(Score):
+class ShortPokerScore(Score):
     NO_PAIR = 0
     PAIR = 1
     TWO_PAIR = 2
@@ -185,10 +185,10 @@ class TraditionalPokerScore(Score):
 
         # In a traditional poker, royal flushes are weaker than minimum straight flushes
         # This is done so you are not mathematically sure to have the strongest hand.
-        if self.category == TraditionalPokerScore.STRAIGHT_FLUSH:
-            if TraditionalPokerScore._straight_is_max(cards1) and TraditionalPokerScore._straight_is_min(cards2):
+        if self.category == ShortPokerScore.STRAIGHT_FLUSH:
+            if ShortPokerScore._straight_is_max(cards1) and ShortPokerScore._straight_is_min(cards2):
                 return -1
-            elif TraditionalPokerScore._straight_is_min(cards1) and TraditionalPokerScore._straight_is_max(cards2):
+            elif ShortPokerScore._straight_is_min(cards1) and ShortPokerScore._straight_is_max(cards2):
                 return 1
 
         if self.strength < other.strength:
@@ -207,7 +207,7 @@ class TraditionalPokerScore(Score):
         return straight_sequence[0].rank == 14
 
 
-class HoldemPokerScore(Score):
+class LongPokerScore(Score):
     NO_PAIR = 0
     PAIR = 1
     TWO_PAIR = 2
@@ -243,56 +243,6 @@ class ScoreDetector:
         raise NotImplemented
 
 
-class TraditionalPokerScoreDetector(ScoreDetector):
-    def __init__(self, lowest_rank):
-        self._lowest_rank = lowest_rank
-
-    def get_score(self, cards):
-        cards = Cards(cards, self._lowest_rank)
-
-        score_functions = [
-            (TraditionalPokerScore.STRAIGHT_FLUSH, cards.straight_flush),
-            (TraditionalPokerScore.QUADS, cards.quads),
-            (TraditionalPokerScore.FLUSH, cards.flush),
-            (TraditionalPokerScore.FULL_HOUSE, cards.full_house),
-            (TraditionalPokerScore.STRAIGHT, cards.straight),
-            (TraditionalPokerScore.TRIPS, cards.trips),
-            (TraditionalPokerScore.TWO_PAIR, cards.two_pair),
-            (TraditionalPokerScore.PAIR, cards.pair),
-            (TraditionalPokerScore.NO_PAIR, cards.no_pair),
-        ]
-
-        for score_category, score_function in score_functions:
-            score = score_function()
-            if score:
-                return TraditionalPokerScore(score_category, score)
-
-        raise RuntimeError("Unable to detect the score")
-
-
-class HoldemPokerScoreDetector(ScoreDetector):
-    def get_score(self, cards):
-        cards = Cards(cards, 2)
-        score_functions = [
-            (HoldemPokerScore.STRAIGHT_FLUSH, cards.straight_flush),
-            (HoldemPokerScore.QUADS, cards.quads),
-            (HoldemPokerScore.FULL_HOUSE, cards.full_house),
-            (HoldemPokerScore.FLUSH, cards.flush),
-            (HoldemPokerScore.STRAIGHT, cards.straight),
-            (HoldemPokerScore.TRIPS, cards.trips),
-            (HoldemPokerScore.TWO_PAIR, cards.two_pair),
-            (HoldemPokerScore.PAIR, cards.pair),
-            (HoldemPokerScore.NO_PAIR, cards.no_pair),
-        ]
-
-        for score_category, score_function in score_functions:
-            cards = score_function()
-            if cards:
-                return HoldemPokerScore(score_category, cards)
-
-        raise RuntimeError("Unable to detect the score")
-
-
 class ShortPokerScoreDetector(ScoreDetector):
     def __init__(self, lowest_rank):
         self._lowest_rank = lowest_rank
@@ -300,21 +250,71 @@ class ShortPokerScoreDetector(ScoreDetector):
     def get_score(self, cards):
         cards = Cards(cards, self._lowest_rank)
 
-        score_functions = [  # 比牌规则
-            (HoldemPokerScore.STRAIGHT_FLUSH, cards.straight_flush),  # 同花顺
-            (HoldemPokerScore.QUADS, cards.quads),  # 四条
-            (HoldemPokerScore.FLUSH, cards.flush),  # 同花
-            (HoldemPokerScore.FULL_HOUSE, cards.full_house),  # 葫芦
-            (HoldemPokerScore.STRAIGHT, cards.straight),  # 顺子
-            (HoldemPokerScore.TRIPS, cards.trips),  # 三条
-            (HoldemPokerScore.TWO_PAIR, cards.two_pair),  # 两对
-            (HoldemPokerScore.PAIR, cards.pair),  # 一对
-            (HoldemPokerScore.NO_PAIR, cards.no_pair),  # 高牌
+        score_functions = [
+            (ShortPokerScore.STRAIGHT_FLUSH, cards.straight_flush),
+            (ShortPokerScore.QUADS, cards.quads),
+            (ShortPokerScore.FLUSH, cards.flush),
+            (ShortPokerScore.FULL_HOUSE, cards.full_house),
+            (ShortPokerScore.STRAIGHT, cards.straight),
+            (ShortPokerScore.TRIPS, cards.trips),
+            (ShortPokerScore.TWO_PAIR, cards.two_pair),
+            (ShortPokerScore.PAIR, cards.pair),
+            (ShortPokerScore.NO_PAIR, cards.no_pair),
         ]
 
         for score_category, score_function in score_functions:
             score = score_function()
             if score:
-                return TraditionalPokerScore(score_category, score)
+                return ShortPokerScore(score_category, score)
+
+        raise RuntimeError("Unable to detect the score")
+
+
+class LongPokerScoreDetector(ScoreDetector):
+    def get_score(self, cards):
+        cards = Cards(cards, 2)
+        score_functions = [
+            (LongPokerScore.STRAIGHT_FLUSH, cards.straight_flush),
+            (LongPokerScore.QUADS, cards.quads),
+            (LongPokerScore.FULL_HOUSE, cards.full_house),
+            (LongPokerScore.FLUSH, cards.flush),
+            (LongPokerScore.STRAIGHT, cards.straight),
+            (LongPokerScore.TRIPS, cards.trips),
+            (LongPokerScore.TWO_PAIR, cards.two_pair),
+            (LongPokerScore.PAIR, cards.pair),
+            (LongPokerScore.NO_PAIR, cards.no_pair),
+        ]
+
+        for score_category, score_function in score_functions:
+            cards = score_function()
+            if cards:
+                return LongPokerScore(score_category, cards)
+
+        raise RuntimeError("Unable to detect the score")
+
+
+class CustomPokerScoreDetector(ScoreDetector):
+    def __init__(self, lowest_rank):
+        self._lowest_rank = lowest_rank
+
+    def get_score(self, cards):
+        cards = Cards(cards, self._lowest_rank)
+
+        score_functions = [  # 比牌规则
+            (LongPokerScore.STRAIGHT_FLUSH, cards.straight_flush),  # 同花顺
+            (LongPokerScore.QUADS, cards.quads),  # 四条
+            (LongPokerScore.FLUSH, cards.flush),  # 同花
+            (LongPokerScore.FULL_HOUSE, cards.full_house),  # 葫芦
+            (LongPokerScore.STRAIGHT, cards.straight),  # 顺子
+            (LongPokerScore.TRIPS, cards.trips),  # 三条
+            (LongPokerScore.TWO_PAIR, cards.two_pair),  # 两对
+            (LongPokerScore.PAIR, cards.pair),  # 一对
+            (LongPokerScore.NO_PAIR, cards.no_pair),  # 高牌
+        ]
+
+        for score_category, score_function in score_functions:
+            score = score_function()
+            if score:
+                return ShortPokerScore(score_category, score)
 
         raise RuntimeError("Unable to detect the score")

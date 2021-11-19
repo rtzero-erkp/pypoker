@@ -4,7 +4,7 @@ import os
 
 from poker.game_server_redis import GameServerRedis
 from poker.game_room import GameRoomFactory
-from poker.poker_game_short import ShortPokerGameFactory
+from poker.poker_game_custom import CustomPokerGameFactory
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG if 'DEBUG' in os.environ else logging.INFO)
@@ -17,7 +17,7 @@ if __name__ == '__main__':
         connection_channel="custom-poker:lobby",
         room_factory=GameRoomFactory(
             room_size=10,
-            game_factory=ShortPokerGameFactory(
+            game_factory=CustomPokerGameFactory(
                 big_blind=40.0,
                 small_blind=20.0,
                 logger=logger,

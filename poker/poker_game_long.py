@@ -6,10 +6,10 @@ import gevent
 from .deck import DeckFactory
 from .player import Player
 from .poker_game import PokerGame, GameFactory, GameError, EndGameException, GamePlayers, GameEventDispatcher, GameSubscriber
-from .score_detector import HoldemPokerScoreDetector
+from .score_detector import LongPokerScoreDetector
 
 
-class HoldemPokerGameFactory(GameFactory):
+class LongPokerGameFactory(GameFactory):
     def __init__(self, big_blind: float, small_blind: float, logger, game_subscribers: Optional[List[GameSubscriber]] = None):
         self._big_blind: float = big_blind
         self._small_blind: float = small_blind
@@ -19,22 +19,22 @@ class HoldemPokerGameFactory(GameFactory):
     def create_game(self, players: List[Player]):
         game_id = str(uuid.uuid4())
 
-        event_dispatcher = HoldemPokerGameEventDispatcher(game_id=game_id, logger=self._logger)
+        event_dispatcher = LongPokerGameEventDispatcher(game_id=game_id, logger=self._logger)
         for subscriber in self._game_subscribers:
             event_dispatcher.subscribe(subscriber)
 
-        return HoldemPokerGame(
+        return LongPokerGame(
             self._big_blind,
             self._small_blind,
             id=game_id,
             game_players=GamePlayers(players),
             event_dispatcher=event_dispatcher,
             deck_factory=DeckFactory(2),
-            score_detector=HoldemPokerScoreDetector()
+            score_detector=LongPokerScoreDetector()
         )
 
 
-class HoldemPokerGameEventDispatcher(GameEventDispatcher):
+class LongPokerGameEventDispatcher(GameEventDispatcher):
     def new_game_event(self, game_id, players, dealer_id, big_blind, small_blind):
         self.raise_event(
             "new-game",
@@ -63,7 +63,7 @@ class HoldemPokerGameEventDispatcher(GameEventDispatcher):
         )
 
 
-class HoldemPokerGame(PokerGame):
+class LongPokerGame(PokerGame):
     TIMEOUT_TOLERANCE = 2
     BET_TIMEOUT = 30
 
