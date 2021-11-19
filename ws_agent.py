@@ -1,32 +1,12 @@
 import json
-import asyncio
-import random
-import time
 import uuid
-from typing import Any, List
-
-import requests as requests
-
-from poker.utils import *
+from typing import List
 from websocket import create_connection
+from poker.utils import *
 
-ws_url = "ws://192.168.199.220:5000/poker/texas-holdem"
+ws_url = "ws://192.168.199.220:5000/poker/lobby"
 index_url = "http://192.168.199.220:5000/"
 join_url = "http://192.168.199.220:5000/join"
-
-
-def card2str(card_idx, color_idx):
-    cards = "__23456789TJQKA"
-    colors = ["红色", "蓝色", "黄色", "绿色"]
-    card = use_style(cards[card_idx], fore=colors[color_idx])
-    return card
-
-
-def cards2str(hand):
-    line = ""
-    for card in hand:
-        line += card2str(card[0], card[1])
-    return line
 
 
 class WSClient:
@@ -54,7 +34,6 @@ class WSClient:
     def send(self, msg: dict):
         if self.conn.connected:
             msg = json.dumps(msg)
-            # info(f"[send] {msg}")
             self.conn.send(msg)
         else:
             error("conn closed")
@@ -62,7 +41,6 @@ class WSClient:
     def recv(self) -> dict:
         if self.conn.connected:
             msg = self.conn.recv()
-            # info(f"[recv] {msg}")
             dc = json.loads(msg)
             return dc
         else:
@@ -115,11 +93,11 @@ class Agent:
                     self.disconnect()
                 elif message_type == "room-update":
                     event = msg["event"]
-                    info(f"[recv] type:{message_type}, event:{event}, info:{msg}")
+                    # info(f"[recv] type:{message_type}, event:{event}, info:{msg}")
                     self.dealt_room_update(msg, event)
                 elif message_type == "game-update":
-                    event = msg["event"]
-                    info(f"[recv] type:{message_type}, event:{event}, info:{msg}")
+                    # event = msg["event"]
+                    # info(f"[recv] type:{message_type}, event:{event}, info:{msg}")
                     self.dealt_game_update(msg)
                 else:
                     debug(f"unknown msg.type:{msg['message_type']}")
@@ -159,7 +137,7 @@ class Agent:
                  'player_ids': [None, 'f56595e2-cd98-4e9f-87a4-b3fbf5b44baf', None, None, None, None, None, None, None, None],
                  'player_id': '714f1ad1-9726-4bb0-b2cd-8ecc1c53bb47'}
             pid = msg["player_id"]
-            is_self = pid == self.pid
+            # is_self = pid == self.pid
             debug(f"[leave] pid:{pid}")
         else:
             debug(f"unknown event.type:{event}")
@@ -206,6 +184,11 @@ class Agent:
                  "timeout_date": "2021-11-18 08:37:12+0000",  # 超时时间
                  "event": "player-action",  # 行动事件
                  "game_id": "35fc022f-468c-4e93-a069-a9da0e52526f"}
+            _ = {'message_type': 'game-update',
+                 'action': 'cards-change',
+                 'player': {'id': '7d4c45ef-b059-4b58-9459-bd44efbf142a', 'name': 'ws_agent', 'money': 990.0},
+                 'timeout': 30, 'timeout_date': '2021-11-19 03:04:18+0000',
+                 'event': 'player-action', 'game_id': 'db804b66-8ffb-4eaf-a7ca-049d2bef4036'}
             pid = msg["player"]["id"]
             name = msg["player"]["name"]
             money = msg["player"]["money"]
@@ -216,7 +199,7 @@ class Agent:
                     "message_type": "bet",
                     "bet": msg["min_bet"]
                 }
-                self.send(act)
+                self.ws.send(act)
                 debug(f"[self] bet:{act['bet']}")
                 # 自己行动反馈
                 _ = {'message_type': 'game-update',
@@ -337,6 +320,17 @@ class Agent:
                  'players': {
                      'f699eab7-a588-422f-8af3-b7a2289dc2e9': {'id': 'f699eab7-a588-422f-8af3-b7a2289dc2e9', 'name': 'ws_agent', 'money': 1040.0}},
                  'event': 'winner-designation', 'game_id': 'ba1f3dde-1d3f-455f-867f-8c53fc254394'}
+            _ = {'message_type': 'game-update',
+                 'pot': {'money': 120.0,
+                         'player_ids': ['70c5fd09-3273-4b67-b1ed-009080b71221', '6e27ad76-500d-4250-9ff7-b00e1e591388', '714f1ad1-9726-4bb0-b2cd-8ecc1c53bb47'],
+                         'winner_ids': ['6e27ad76-500d-4250-9ff7-b00e1e591388'],
+                         'money_split': 120},
+                 'pots': [],
+                 'players': {
+                     '70c5fd09-3273-4b67-b1ed-009080b71221': {'id': '70c5fd09-3273-4b67-b1ed-009080b71221', 'name': 'ws_agent', 'money': 920.0},
+                     '6e27ad76-500d-4250-9ff7-b00e1e591388': {'id': '6e27ad76-500d-4250-9ff7-b00e1e591388', 'name': 'ws_agent', 'money': 1120.0},
+                     '714f1ad1-9726-4bb0-b2cd-8ecc1c53bb47': {'id': '714f1ad1-9726-4bb0-b2cd-8ecc1c53bb47', 'name': '1', 'money': 960.0}},
+                 'event': 'winner-designation', 'game_id': '2c77ddf7-f729-4535-ac66-5b82a7589a4a'}
 
             winner_ids = msg["pot"]["winner_ids"]
             money_split = msg["pot"]["money_split"]
@@ -360,19 +354,7 @@ class Agent:
         else:
             debug(f"unknown event.type:{event}")
 
-    def send(self, msg: dict):
-        info(f"[send] {msg}")
-        self.ws.send(msg)
-
 
 if __name__ == "__main__":
     agent = Agent()
     agent.connect(ws_url)
-    # res = requests.post(index_url)
-    # res = requests.post(join_url, data={"name": str(uuid.uuid4()), "room-id": 1})
-    # info(res)
-    # info(res.content)
-    # info(res.cookies)
-    # info(res.text)
-    # info(res.json())
-    # info(res)

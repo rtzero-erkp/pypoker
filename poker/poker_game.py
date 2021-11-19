@@ -223,7 +223,7 @@ class GameEventDispatcher:
         self._logger.debug(
             "\n" +
             ("-" * 80) + "\n"
-            "GAME: {}\nEVENT: {}".format(self._game_id, event) + "\n" +
+                         "GAME: {}\nEVENT: {}".format(self._game_id, event) + "\n" +
             str(event_data) + "\n" +
             ("-" * 80) + "\n"
         )

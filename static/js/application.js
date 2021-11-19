@@ -22,13 +22,11 @@ PyPoker = {
                     url = "static/images/cards-small.png";
                     width = 24;
                     height = 40;
-                }
-                else if ($(this).hasClass('medium')) {
+                } else if ($(this).hasClass('medium')) {
                     url = "static/images/cards-medium.png";
                     width = 45;
                     height = 75;
-                }
-                else {
+                } else {
                     url = "static/images/cards-large.png";
                     width = 75;
                     height = 125;
@@ -58,8 +56,7 @@ PyPoker = {
 
                     if (rank == 14) {
                         rank = 1;
-                    }
-                    else if (rank < 1 || rank > 13) {
+                    } else if (rank < 1 || rank > 13) {
                         throw "Invalid rank";
                     }
 
@@ -87,8 +84,7 @@ PyPoker = {
                     7: "Four of a kind",
                     8: "Straight flush"
                 };
-            }
-            else {
+            } else {
                 PyPoker.Game.numCards = 2;
                 PyPoker.Game.scoreCategories = {
                     0: "Highest card",
@@ -219,8 +215,7 @@ PyPoker = {
                 if (pot.winner_ids.indexOf(playerId) != -1) {
                     $player.removeClass('fold');
                     $player.addClass('winner');
-                }
-                else {
+                } else {
                     $player.addClass('fold');
                 }
             }
@@ -331,8 +326,7 @@ PyPoker = {
         sliderHandler: function (value) {
             if (value == 0) {
                 $('#bet-cmd').attr("value", "Check");
-            }
-            else {
+            } else {
                 $('#bet-cmd').attr("value", "$" + parseInt(value));
             }
             $('#bet-input').val(value);
@@ -355,8 +349,7 @@ PyPoker = {
                     $('#fold-cmd').val('Pass')
                         .removeClass('btn-danger')
                         .addClass('btn-warning');
-                }
-                else {
+                } else {
                     $('#fold-cmd').val('Fold')
                         .addClass('btn-danger')
                         .removeClass('btn-warning');
@@ -366,9 +359,7 @@ PyPoker = {
                 $('#bet-input-wrapper').show();
                 $('#bet-cmd-wrapper').show();
                 $('#no-bet-cmd-wrapper').hide();
-            }
-
-            else {
+            } else {
                 $('#fold-cmd-wrapper').hide();
                 $('#bet-input-wrapper').hide();
                 $('#bet-cmd-wrapper').hide();
@@ -387,8 +378,7 @@ PyPoker = {
 
             if (changeMode) {
                 $('#cards-change-controls').show();
-            }
-            else {
+            } else {
                 $('#cards-change-controls').hide();
                 $('#current-player .card.selected').removeClass('selected');
             }
@@ -421,10 +411,10 @@ PyPoker = {
                 "fg_width": 0.05,
                 "count_past_zero": false,
                 "time": {
-                    "Days": { show: false },
-                    "Hours": { show: false },
-                    "Minutes": { show: false },
-                    "Seconds": { show: true }
+                    "Days": {show: false},
+                    "Hours": {show: false},
+                    "Minutes": {show: false},
+                    "Seconds": {show: true}
                 }
             });
             $timers.addClass('active');
@@ -432,12 +422,12 @@ PyPoker = {
 
         onBet: function (message) {
             PyPoker.Player.enableBetMode(message);
-            $("html, body").animate({ scrollTop: $(document).height() }, "slow");
+            $("html, body").animate({scrollTop: $(document).height()}, "slow");
         },
 
         onChangeCards: function (message) {
             PyPoker.Player.setCardsChangeMode(true);
-            $("html, body").animate({ scrollTop: $(document).height() }, "slow");
+            $("html, body").animate({scrollTop: $(document).height()}, "slow");
         }
     },
 
@@ -490,8 +480,7 @@ PyPoker = {
                     // This seat is taken
                     $seat.append(PyPoker.Room.createPlayer(message.players[playerId]));
                     $seat.attr('data-player-id', playerId);
-                }
-                else {
+                } else {
                     $seat.append(PyPoker.Room.createPlayer());
                     $seat.attr('data-player-id', null);
                 }
@@ -541,7 +530,9 @@ PyPoker = {
 
     init: function () {
         wsScheme = window.location.protocol == "https:" ? "wss://" : "ws://";
-        ws_url = wsScheme + location.host + "/poker/texas-holdem";
+        // ws_url = wsScheme + location.host + "/poker/texas-holdem";
+        // ws_url = wsScheme + location.host + "/poker/short";
+        ws_url = wsScheme + location.host + "/poker/lobby";
         console.log("ws_url:" + ws_url)
         PyPoker.socket = new WebSocket(ws_url);
         console.log("ws connect success")
@@ -562,7 +553,7 @@ PyPoker = {
 
             switch (data.message_type) {
                 case 'ping':
-                    PyPoker.socket.send(JSON.stringify({ 'message_type': 'pong' }));
+                    PyPoker.socket.send(JSON.stringify({'message_type': 'pong'}));
                     break;
                 case 'connect':
                     PyPoker.onConnect(data);

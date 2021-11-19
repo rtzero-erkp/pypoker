@@ -51,16 +51,10 @@ def join():
     return redirect(url_for("index"))
 
 
-@sockets.route("/poker/texas-holdem")
-def texasholdem_poker_game(ws: WebSocket):
-    info("texasholdem_poker_game")
-    return poker_game(ws, "texas-holdem-poker:lobby")
-
-
-@sockets.route("/poker/traditional")
-def traditional_poker_game(ws: WebSocket):
-    info("traditional_poker_game")
-    return poker_game(ws, "traditional-poker:lobby")
+@sockets.route("/poker/lobby")
+def lobby_game(ws: WebSocket):
+    info("lobby")
+    return poker_game(ws, "custom-poker:lobby")
 
 
 def poker_game(ws: WebSocket, connection_channel: str):
@@ -68,7 +62,6 @@ def poker_game(ws: WebSocket, connection_channel: str):
     client_channel = ChannelWebSocket(ws)
     info(f"session:{session}")
 
-    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     if "player-id" not in session:
         first = ws.receive()
         first = json.loads(first)
@@ -88,27 +81,6 @@ def poker_game(ws: WebSocket, connection_channel: str):
         player_name = session["player-name"]
         player_money = session["player-money"]
         room_id = session["room-id"]
-    # ===================================
-    # if "player-id" not in session:
-    #     mark()
-    #     client_channel.send_message(
-    #         {
-    #             "message_type": "error",
-    #             "error": "Unrecognized user",
-    #         })
-    #     client_channel.close()
-    #     error("no session close")
-    #     return
-    #
-    # mark()
-    # session_id = str(uuid.uuid4())
-    #
-    # mark()
-    # player_id = session["player-id"]
-    # player_name = session["player-name"]
-    # player_money = session["player-money"]
-    # room_id = session["room-id"]
-    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     mark()
     player_connector = PlayerClientConnector(

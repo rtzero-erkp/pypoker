@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 
 
 def my_format(level, line, deep):
@@ -8,17 +9,17 @@ def my_format(level, line, deep):
     co_filename = sys._getframe(deep).f_code.co_filename
     (_, filename) = os.path.split(co_filename)
     if level == "INFO":
-        fore = "white"
+        fore = "绿色"
     elif level == "WARNING":
-        fore = "yellow"
+        fore = "黄色"
     elif level == "ERROR":
-        fore = "red"
+        fore = "红色"
     elif level == "DEBUG":
         fore = ""
     else:
         fore = ""
     line = use_style(
-        f"{level} {filename} {co_name}:{f_lineno} - {line}", fore=fore)
+        f"{level} {time.time()} {filename} {co_name}:{f_lineno} - {line}", fore=fore)
     return line
 
 
@@ -90,3 +91,17 @@ def use_style(line, mode='', fore='', back=''):
     style = '\033[%sm' % style if style else ''
     end = '\033[%sm' % STYLE['default']['end'] if style else ''
     return '%s%s%s' % (style, line, end)
+
+
+def card2str(card_idx, color_idx):
+    cards = "__23456789TJQKA"
+    colors = ["红色", "蓝色", "黄色", "绿色"]
+    card = use_style(cards[card_idx], fore=colors[color_idx])
+    return card
+
+
+def cards2str(hand):
+    line = ""
+    for card in hand:
+        line += card2str(card[0], card[1])
+    return line
